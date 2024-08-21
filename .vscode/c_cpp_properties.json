@@ -1,0 +1,27 @@
+{
+  "env": {
+    "KERNEL_VERSION":"6.10.4-200.fc40.x86_64"
+  },
+  "configurations": [
+    {
+      "name": "Linux",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/lib/modules/${KERNEL_VERSION}/build/include/",
+        "/lib/modules/${KERNEL_VERSION}/build/arch/x86/include/",
+        "/lib/modules/${KERNEL_VERSION}/build/arch/x86/include/generated"
+      ],
+      "defines": [
+          "__GNUC__",
+          "__KERNEL__",
+          "MODULE",
+          "KBUILD_MODNAME=\"UniversalIO\""
+      ],
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-x64"
+    }
+  ],
+  "version": 4
+}
