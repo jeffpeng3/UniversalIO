@@ -1,15 +1,12 @@
 {
-  "env": {
-    "KERNEL_VERSION":"6.10.4-200.fc40.x86_64"
-  },
   "configurations": [
     {
       "name": "Linux",
       "includePath": [
         "${workspaceFolder}/**",
-        "/lib/modules/${KERNEL_VERSION}/build/include/",
-        "/lib/modules/${KERNEL_VERSION}/build/arch/x86/include/",
-        "/lib/modules/${KERNEL_VERSION}/build/arch/x86/include/generated"
+        "/lib/modules/*/build/include/",
+        "/lib/modules/*/build/arch/x86/include/",
+        "/lib/modules/*/build/arch/x86/include/generated"
       ],
       "defines": [
           "__GNUC__",
