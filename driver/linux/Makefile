@@ -5,12 +5,12 @@ EXTRA_CFLAGS := -I$(src)/include
 I2C_BUS = 4
 
 reload: build
-	@-sudo rmmod UniversalIO.ko
+	@-sudo rmmod UniversalIO.ko 2>/dev/null
 	@sudo insmod UniversalIO.ko
 	@sudo dmesg | grep "UniversalIO" | tail -n 5
 
 build:
-	@make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	@make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules -j$(shell nproc)
 
 clean:
 	@make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
