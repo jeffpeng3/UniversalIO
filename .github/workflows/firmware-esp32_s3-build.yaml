@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - firmware/esp32-s3/**
+      - .github/workflows/firmware-esp32_s3-build.yaml
   workflow_dispatch:
 
 jobs:

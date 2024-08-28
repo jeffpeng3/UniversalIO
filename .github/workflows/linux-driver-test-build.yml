@@ -1,8 +1,10 @@
 name: test build linux driver
+
 on:
   push:
     paths:
       - driver/linux/**
+      - .github/workflows/linux-driver-test-build.yml
   workflow_dispatch:
 
 jobs:
