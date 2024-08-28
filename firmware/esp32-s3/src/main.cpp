@@ -14,8 +14,8 @@ extern "C"
     void app_main(void);
 }
 
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[2][2048];
-USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[2][2048];
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[2][CDC_MAX_MPS];
+USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[2][CDC_MAX_MPS];
 volatile bool ep_tx_busy_flag = false;
 
 static void usbd_event_handler(uint8_t busid, uint8_t event)
@@ -40,8 +40,8 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     case USBD_EVENT_CONFIGURED:
         ep_tx_busy_flag = false;
         /* setup first out ep read transfer */
-        usbd_ep_start_read(busid, CDC_UART_OUT_EP, read_buffer[0], 2048);
-        usbd_ep_start_read(busid, CDC_I2C_OUT_EP, read_buffer[1], 2048);
+        usbd_ep_start_read(busid, CDC_UART_OUT_EP, read_buffer[0], CDC_MAX_MPS);
+        usbd_ep_start_read(busid, CDC_I2C_OUT_EP, read_buffer[1], CDC_MAX_MPS);
         // usbd_ep_start_read(busid, CDC_SPI_OUT_EP, read_buffer[2], CDC_MAX_MPS);
         break;
     case USBD_EVENT_SET_REMOTE_WAKEUP:
@@ -55,13 +55,14 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
 
 void usbd_cdc_acm_bulk_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
-    USB_LOG_RAW("actual out len:%d\r\n", nbytes);
+    USB_LOG_RAW("%d actual out len:%d\r\n", ep, nbytes);
     /* setup next out ep read transfer */
-    char buf[2048] = {0};
+    // char buf[2048] = {0};
     int idx = ep & 0x7;
-    memcpy(buf,read_buffer[idx],nbytes);
+    memcpy(write_buffer[idx],read_buffer[idx],nbytes);
     // USB_LOG_RAW("message from channel <%d>:%.64s\r\n", idx, buf);
-    usbd_ep_start_read(busid, ep, read_buffer[idx], 2048);
+    usbd_ep_start_write(busid, CDC_I2C_IN_EP, write_buffer[idx], nbytes);
+    usbd_ep_start_read(busid, ep, read_buffer[idx], CDC_MAX_MPS);
 }
 
 void usbd_cdc_acm_bulk_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
