@@ -4,28 +4,9 @@
 #include "spi_engine.h"
 #include "uart_engine.h"
 
-// static int __init my_i2c_init(void)
-// {
-// 	snprintf(adapter.name, sizeof(adapter.name), "My I2C Adapter");
-
-// 	if (i2c_add_adapter(&adapter)) {
-// 		// i2c_put_adapter(&adapter);
-//		return -ENODEV;
-// 	}
-// 	pr_info("hello i2c-%d!\n", adapter.nr);
-
-// 	return 0;
-// }
-
-// static void __exit my_i2c_exit(void)
-// {
-// 	pr_info("goodbye i2c-%d!\n", adapter.nr);
-// 	i2c_del_adapter(&adapter);
-// }
-
 static int usb_probe(struct usb_interface *interface, const struct usb_device_id *id)
 {
-	pr_info("CDC-ACM device (%04X:%04X)-%1hhd plugged\n", id->idVendor, id->idProduct,interface->cur_altsetting->desc.bNumEndpoints);
+	pr_info("CDC-ACM device (%04X:%04X)-%d plugged\n", id->idVendor, id->idProduct, id->bInterfaceNumber);
 	// 這裡可以添加初始化和設置 CDC-ACM 裝置的代碼
 	return 0;
 }
