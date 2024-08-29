@@ -1,19 +1,6 @@
 {
     "files.associations": {
-        "kernel.h": "c",
-        "slab.h": "c",
-        "i2c.h": "c",
-        "i2c_engine.h": "c",
-        "module.h": "c",
-        "spi_engine.h": "c",
-        "spi.h": "c",
-        "i2c-smbus.h": "c",
-        "i2c-dev.h": "c",
-        "compiler.h": "c",
-        "input.h": "c",
-        "init.h": "c",
-        "lib.h": "c",
-        "uart_engine.h": "c"
+        "*.h": "c",
     },
     "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, UseTab: Always, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Linux, AllowShortIfStatementsOnASingleLine: true, IndentCaseLabels: false, ColumnLimit: 120}"
 }
