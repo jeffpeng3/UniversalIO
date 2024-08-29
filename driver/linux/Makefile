@@ -6,7 +6,7 @@ I2C_BUS = 4
 
 reload: build
 	@-sudo rmmod UniversalIO.ko 2>/dev/null
-	@sudo insmod UniversalIO.ko
+	@sudo modprobe ./UniversalIO.ko
 	@sudo dmesg | grep "UniversalIO" | tail -n 5
 
 build:
