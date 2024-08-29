@@ -1,21 +1,9 @@
-static struct usbd_interface uart_interface_in;
-static struct usbd_interface uart_interface_out;
-static struct usbd_interface i2c_interface_in;
-static struct usbd_interface i2c_interface_out;
-static struct usbd_interface spi_interface_in;
-static struct usbd_interface spi_interface_out;
+static struct usbd_interface if_in;
+static struct usbd_interface if_out;
 
-static inline const int CDC_UART_IN_EP = 0x81;
-static inline const int CDC_UART_OUT_EP = 0x01;
-static inline const int CDC_UART_INT_EP = 0x85;
-
-static inline const int CDC_I2C_IN_EP = 0x82;
-static inline const int CDC_I2C_OUT_EP = 0x02;
-static inline const int CDC_I2C_INT_EP = 0x86;
-
-static inline const int CDC_SPI_IN_EP = 0x21;
-static inline const int CDC_SPI_OUT_EP = 0x22;
-static inline const int CDC_SPI_INT_EP = 0x23;
+static inline const int IN_EP = 0x81;
+static inline const int OUT_EP = 0x01;
+static inline const int INT_EP = 0x85;
 
 static inline const int CDC_MAX_MPS = 64;
 
@@ -24,14 +12,12 @@ static inline const int USBD_PID = 0xffff;
 static inline const int USBD_MAX_POWER = 100;
 static inline const int USBD_LANGID_STRING = 0x0409;
 
-static inline const int USB_CONFIG_SIZE = (9 + CDC_ACM_DESCRIPTOR_LEN * 2);
+static inline const int USB_CONFIG_SIZE = (9 + CDC_ACM_DESCRIPTOR_LEN);
 
 const uint8_t cdc_descriptor[] = {
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0xFF, 0x02, 0x01, USBD_VID, USBD_PID, 0x0100, 0x01),
-    USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, 0x04, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
-    CDC_ACM_DESCRIPTOR_INIT(0x00, CDC_UART_INT_EP, CDC_UART_OUT_EP, CDC_UART_IN_EP, CDC_MAX_MPS, 0x02),
-    CDC_ACM_DESCRIPTOR_INIT(0x02, CDC_I2C_INT_EP, CDC_I2C_OUT_EP, CDC_I2C_IN_EP, CDC_MAX_MPS, 0x02),
-    // CDC_ACM_DESCRIPTOR_INIT(0x04, CDC_SPI_INT_EP, CDC_SPI_OUT_EP, CDC_SPI_IN_EP, CDC_MAX_MPS, 0x02),
+    USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, 0x02, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
+    CDC_ACM_DESCRIPTOR_INIT(0x00, IN_EP, OUT_EP, INT_EP, CDC_MAX_MPS, 0x02),
     ///////////////////////////////////////
     /// string0 descriptor
     ///////////////////////////////////////
