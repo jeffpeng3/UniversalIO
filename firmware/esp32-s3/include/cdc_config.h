@@ -1,3 +1,5 @@
+#include "usbd_core.h"
+#include "usbd_cdc.h"
 static struct usbd_interface if_in;
 static struct usbd_interface if_out;
 
@@ -17,7 +19,7 @@ static inline const int USB_CONFIG_SIZE = (9 + CDC_ACM_DESCRIPTOR_LEN);
 const uint8_t cdc_descriptor[] = {
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0xFF, 0x02, 0x01, USBD_VID, USBD_PID, 0x0100, 0x01),
     USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, 0x02, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
-    CDC_ACM_DESCRIPTOR_INIT(0x00, IN_EP, OUT_EP, INT_EP, CDC_MAX_MPS, 0x02),
+    CDC_ACM_DESCRIPTOR_INIT(0x00, INT_EP, OUT_EP, IN_EP, CDC_MAX_MPS, 0x02),
     ///////////////////////////////////////
     /// string0 descriptor
     ///////////////////////////////////////
