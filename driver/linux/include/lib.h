@@ -1,10 +1,10 @@
-/* SPDX-License-Identifier: <SPDX License Expression> */
+/* SPDX-License-Identifier: GPL-2.0 */
 #pragma once
 #include <linux/module.h>
 #include <linux/usb.h>
 
-#define UniIO_VENDOR_ID  0xffff  // 替換為你的裝置的 Vendor ID
-#define UniIO_PRODUCT_ID 0xffff  // 替換為你的裝置的 Product ID
+#define UniIO_VENDOR_ID  0xffff
+#define UniIO_PRODUCT_ID 0xffff
 
 #ifdef pr_fmt
 #undef pr_fmt
