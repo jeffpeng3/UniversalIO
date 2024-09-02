@@ -20,21 +20,29 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     switch (event)
     {
     case USBD_EVENT_RESET:
+        USB_LOG_INFO("USBD_EVENT_RESET\n");
         break;
     case USBD_EVENT_CONNECTED:
+        USB_LOG_INFO("USBD_EVENT_CONNECTED\n");
         break;
     case USBD_EVENT_DISCONNECTED:
+        USB_LOG_INFO("USBD_EVENT_DISCONNECTED\n");
         break;
     case USBD_EVENT_RESUME:
+        USB_LOG_INFO("USBD_EVENT_RESUME\n");
         break;
     case USBD_EVENT_SUSPEND:
+        USB_LOG_INFO("USBD_EVENT_SUSPEND\n");
         break;
     case USBD_EVENT_CONFIGURED:
+        USB_LOG_INFO("USBD_EVENT_CONFIGURED\n");
         usbd_ep_start_read(busid, OUT_EP, read_buffer, CDC_MAX_MPS);
         break;
     case USBD_EVENT_SET_REMOTE_WAKEUP:
+        USB_LOG_INFO("USBD_EVENT_SET_REMOTE_WAKEUP\n");
         break;
     case USBD_EVENT_CLR_REMOTE_WAKEUP:
+        USB_LOG_INFO("USBD_EVENT_CLR_REMOTE_WAKEUP\n");
         break;
     default:
         break;
@@ -140,16 +148,5 @@ void app_main(void)
             vPortFree(tmp);
             USB_LOG_INFO("Queue is full\n");
         }
-    }
-}
-
-volatile uint8_t dtr_enable = 0;
-
-void usbd_cdc_acm_set_dtr(uint8_t busid, uint8_t intf, bool dtr)
-{
-    if (dtr) {
-        dtr_enable = 1;
-    } else {
-        dtr_enable = 0;
     }
 }
