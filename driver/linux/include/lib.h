@@ -16,23 +16,23 @@
 
 
 struct uio {
-    bool active;
-    struct usb_device *dev;
-    struct usb_interface *control;
-    struct usb_interface *data;
+	bool active;
+	struct usb_device *dev;
+	struct usb_interface *control;
+	struct usb_interface *data;
 
-    struct usb_endpoint_descriptor *epctrl;
+	struct usb_endpoint_descriptor *epctrl;
 	struct urb *ctrlurb;
-    dma_addr_t ctrl_dma;
-    u8 *ctrl_buffer;
-    
+	dma_addr_t ctrl_dma;
+	u8 *ctrl_buffer;
+
 	u8 *notification_buffer;			/* to reassemble fragmented notifications */
 	unsigned int nb_index;
 	unsigned int nb_size;
 
 
-    struct usb_endpoint_descriptor *epread;
-    struct usb_endpoint_descriptor *epwrite;
+	struct usb_endpoint_descriptor *epread;
+	struct usb_endpoint_descriptor *epwrite;
 
-    
+
 };
