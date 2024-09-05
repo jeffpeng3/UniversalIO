@@ -7,6 +7,12 @@
 #define UniIO_VENDOR_ID  0xffff
 #define UniIO_PRODUCT_ID 0xffff
 
+// fix for older kernels
+#ifndef USB_CDC_CTRL_DTR
+#define USB_CDC_CTRL_DTR			(1 << 0)
+#define USB_CDC_CTRL_RTS			(1 << 1)
+#endif
+
 #ifdef pr_fmt
 #undef pr_fmt
 #endif
