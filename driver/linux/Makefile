@@ -1,7 +1,7 @@
 obj-m += UniversalIO.o
 UniversalIO-objs += ./src/main.o ./src/i2c_engine.o ./src/spi_engine.o ./src/uart_engine.o
-CONFIG_MODULE_SIG=n
 EXTRA_CFLAGS := -I$(src)/include
+ccflags-y := -std=gnu99 -Wno-declaration-after-statement
 I2C_BUS = 4
 
 reload: build
