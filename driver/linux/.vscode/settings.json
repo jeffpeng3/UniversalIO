@@ -3,5 +3,5 @@
         "*.h": "c",
         "type_traits": "c"
     },
-    "C_Cpp.clang_format_style": "{ BasedOnStyle: Google, UseTab: Always, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Linux, AllowShortIfStatementsOnASingleLine: true, IndentCaseLabels: false, ColumnLimit: 120}"
+    "C_Cpp.clang_format_style": "file"
 }
