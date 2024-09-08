@@ -16,7 +16,7 @@ void after_usbd_recv(uint8_t busid, uint8_t ep, uint32_t nbytes)
     USB_LOG_RAW("%d actual get len:%d\n", ep, nbytes);
     uint8_t data[2048] = {0};
     memcpy(data, read_buffer, nbytes);
-    usbd_ep_start_read(busid, OUT_EP, read_buffer, CDC_MAX_MPS);
+    usbd_ep_start_read(busid, OUT_EP, read_buffer, 2048);
     // dispatch(data, nbytes);
 }
 
@@ -55,7 +55,7 @@ void usbd_event_handler(uint8_t busid, uint8_t event)
     case USBD_EVENT_SUSPEND:
         break;
     case USBD_EVENT_CONFIGURED:
-        usbd_ep_start_read(busid, OUT_EP, read_buffer, CDC_MAX_MPS);
+        usbd_ep_start_read(busid, OUT_EP, read_buffer, 2048);
         break;
     case USBD_EVENT_SET_REMOTE_WAKEUP:
         break;
@@ -69,18 +69,19 @@ void usbd_event_handler(uint8_t busid, uint8_t event)
 void usbd_worker(void *pvParameters)
 {
     QueueHandle_t queue = (QueueHandle_t)pvParameters;
-    UIO_frame *data;
+    UIO_frame frame;
     USB_LOG_INFO("start usbd_worker\n");
     while (1)
     {
-        if (xQueueReceive(queue, &data, portMAX_DELAY) == pdTRUE)
+        if (xQueueReceive(queue, &frame, portMAX_DELAY) == pdTRUE)
         {
-            memcpy(write_buffer, data->data, data->len);
-            vPortFree(data->data);
+            USB_LOG_INFO("L78 %p %d\n",&frame.data, frame.len);
+            memcpy(write_buffer, frame.data, frame.len);
+            vPortFree(frame.data);
 
             xSemaphoreTake(readyToSend, portMAX_DELAY);
-            USB_LOG_INFO("start send message: %d words\n", data->len);
-            usbd_ep_start_write(0, IN_EP, write_buffer, data->len);
+            USB_LOG_INFO("start send message: %d words\n", frame.len);
+            usbd_ep_start_write(0, IN_EP, write_buffer, frame.len);
         }
     }
 }

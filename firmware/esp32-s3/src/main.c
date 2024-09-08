@@ -16,7 +16,7 @@ void idle_task(void *pvParameters)
     {
         vTaskDelay(pdMS_TO_TICKS(1000));
         char *tmp = (char *)pvPortMalloc(80 * sizeof(char));
-        memset(tmp, 1, 80);
+        memset(tmp, 0, 80);
         tmp[0] = 0;
         for (int i = 1; i < count; i++)
         {
@@ -40,7 +40,7 @@ void idle_task(void *pvParameters)
 
 void app_main(void)
 {
-    writeQueue = xQueueCreate(20, sizeof(UIO_frame *));
+    writeQueue = xQueueCreate(20, sizeof(UIO_frame));
     if (writeQueue == NULL)
     {
         USB_LOG_ERR("Failed to create writeQueue\n");
@@ -51,4 +51,8 @@ void app_main(void)
 
     xTaskCreate(idle_task, "idle_task", 2048, NULL, 5, NULL);
 
+    while (1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
