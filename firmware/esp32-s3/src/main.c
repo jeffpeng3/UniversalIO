@@ -49,5 +49,6 @@ void app_main(void)
     }
     UIO_cdc_acm_init(writeQueue);
 
+    xTaskCreate(idle_task, "idle_task", 2048, NULL, 5, NULL);
 
 }
