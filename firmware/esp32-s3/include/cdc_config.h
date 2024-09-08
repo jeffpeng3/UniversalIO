@@ -1,20 +1,20 @@
 #include "usbd_core.h"
 #include "usbd_cdc.h"
-static struct usbd_interface if_in;
-static struct usbd_interface if_out;
+struct usbd_interface if_in;
+struct usbd_interface if_out;
 
-static inline const int IN_EP = 0x81;
-static inline const int OUT_EP = 0x01;
-static inline const int INT_EP = 0x85;
+const int IN_EP = 0x81;
+const int OUT_EP = 0x01;
+const int INT_EP = 0x85;
 
-static inline const int CDC_MAX_MPS = 64;
+const int CDC_MAX_MPS = 64;
 
-static inline const int USBD_VID = 0xffff;
-static inline const int USBD_PID = 0xffff;
-static inline const int USBD_MAX_POWER = 100;
-static inline const int USBD_LANGID_STRING = 0x0409;
+const int USBD_VID = 0xffff;
+const int USBD_PID = 0xffff;
+const int USBD_MAX_POWER = 100;
+const int USBD_LANGID_STRING = 0x0409;
 
-static inline const int USB_CONFIG_SIZE = (9 + CDC_ACM_DESCRIPTOR_LEN);
+const int USB_CONFIG_SIZE = (9 + CDC_ACM_DESCRIPTOR_LEN);
 
 const uint8_t cdc_descriptor[] = {
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0xFF, 0x02, 0x01, USBD_VID, USBD_PID, 0x0100, 0x01),
