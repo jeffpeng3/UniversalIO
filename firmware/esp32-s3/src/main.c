@@ -17,13 +17,12 @@ void idle_task(void *pvParameters)
         vTaskDelay(pdMS_TO_TICKS(1000));
         char *tmp = (char *)pvPortMalloc(80 * sizeof(char));
         memset(tmp, 0, 80);
-        tmp[0] = 0;
-        for (int i = 1; i < count; i++)
+        for (int i = 0; i < count; i++)
         {
             tmp[i] = 'A' + i % 26;
         }
         f.data = (uint8_t *)tmp;
-        f.len = count + 1;
+        f.len = count;
         USB_LOG_INFO("Enqueue: %d words\n", count);
         if (errQUEUE_FULL == xQueueSend(writeQueue, &f, 0))
         {

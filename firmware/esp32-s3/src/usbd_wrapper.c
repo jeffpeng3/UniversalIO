@@ -75,7 +75,6 @@ void usbd_worker(void *pvParameters)
     {
         if (xQueueReceive(queue, &frame, portMAX_DELAY) == pdTRUE)
         {
-            USB_LOG_INFO("L78 %p %d\n",&frame.data, frame.len);
             memcpy(write_buffer, frame.data, frame.len);
             vPortFree(frame.data);
 
