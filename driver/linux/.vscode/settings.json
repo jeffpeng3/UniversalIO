@@ -1,7 +1,12 @@
 {
     "files.associations": {
         "*.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "compare": "c",
+        "new": "c",
+        "*.tcc": "c",
+        "cmath": "c",
+        "typeinfo": "c"
     },
     "C_Cpp.clang_format_style": "file"
 }
