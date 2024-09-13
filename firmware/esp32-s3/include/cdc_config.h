@@ -9,8 +9,8 @@ const int INT_EP = 0x85;
 
 const int CDC_MAX_MPS = 64;
 
-const int USBD_VID = 0xffff;
-const int USBD_PID = 0xffff;
+const int USBD_VID = 0x1209;
+const int USBD_PID = 0x8738;
 const int USBD_MAX_POWER = 100;
 const int USBD_LANGID_STRING = 0x0409;
 
