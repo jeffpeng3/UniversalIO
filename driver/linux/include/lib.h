@@ -1,16 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 #pragma once
 #include <linux/module.h>
+#include <linux/kfifo.h>
+#include <linux/wait.h>
 #include <linux/usb.h>
 #include <linux/usb/cdc.h>
 
-#define UniIO_VENDOR_ID  0x1209
+#define UniIO_VENDOR_ID 0x1209
 #define UniIO_PRODUCT_ID 0x8738
 
 // fix for older kernels
 #ifndef USB_CDC_CTRL_DTR
-#define USB_CDC_CTRL_DTR			(1 << 0)
-#define USB_CDC_CTRL_RTS			(1 << 1)
+#define USB_CDC_CTRL_DTR (1 << 0)
+#define USB_CDC_CTRL_RTS (1 << 1)
 #endif
 
 #ifdef pr_fmt
@@ -19,7 +21,6 @@
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #define USB_RT_ACM (USB_TYPE_CLASS | USB_RECIP_INTERFACE)
-
 
 struct uio {
 	bool active;
@@ -35,7 +36,7 @@ struct uio {
 	dma_addr_t ctrl_dma;
 	u8 *ctrl_buffer;
 
-	u8 *notification_buffer;			/* to reassemble fragmented notifications */
+	u8 *notification_buffer; /* to reassemble fragmented notifications */
 	unsigned int nb_index;
 	unsigned int nb_size;
 
@@ -45,6 +46,9 @@ struct uio {
 
 	struct usb_endpoint_descriptor *epread;
 	struct usb_endpoint_descriptor *epwrite;
+};
 
-
+struct uio_queue {
+	struct kfifo fifo;
+	wait_queue_head_t wq;
 };

@@ -2,3 +2,5 @@
 #pragma once
 #include "lib.h"
 #include <linux/spi/spi.h>
+
+extern struct uio_queue *spi_queue;
