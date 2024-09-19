@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 
 #include "usbd_wrapper.h"
+#include "uart_engine.h"
 #include "usbd_core.h"
 #include "string.h"
 #include "frame.h"
@@ -14,13 +15,14 @@ void idle_task(void *pvParameters)
     int count = 0;
     while (++count)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(10000));
         char *tmp = (char *)pvPortMalloc(80 * sizeof(char));
         memset(tmp, 0, 80);
         for (int i = 0; i < count; i++)
         {
             tmp[i] = 'A' + i % 26;
         }
+        tmp[0] = 0;
         f.data = (uint8_t *)tmp;
         f.len = count;
         USB_LOG_INFO("Enqueue: %d words\n", count);
@@ -46,12 +48,14 @@ void app_main(void)
         while (1)
             ;
     }
+    uart_init(writeQueue);
+
     UIO_cdc_acm_init(writeQueue);
 
-    xTaskCreate(idle_task, "idle_task", 2048, NULL, 5, NULL);
+    // xTaskCreate(idle_task, "idle_task", 2048, NULL, 5, NULL);
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }

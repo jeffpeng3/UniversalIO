@@ -6,10 +6,52 @@
 #include <cdc_config.h>
 #include <frame.h>
 #include <usbd_wrapper.h>
+#include <UIO_config.h>
+
+#include "uart_engine.h"
+#include "i2c_engine.h"
+#include "spi_engine.h"
+#include "can_engine.h"
 
 USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[2048];
 USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[2048];
 SemaphoreHandle_t readyToSend;
+
+QueueHandle_t _writeQueue;
+
+void dispatch(uint8_t *data, uint32_t len)
+{
+    struct data_header *header = (struct data_header *)data;
+    switch (header->type)
+    {
+    case 0:
+        uart_dispatch(data, len);
+        break;
+    case 1:
+        // i2c_dispatch(data, len);
+        break;
+    case 2:
+        // spi_dispatch(data, len);
+        break;
+    case 3:
+        // can_dispatch(data, len);
+        break;
+    case 127:
+        // request avaliable ports
+        UIO_frame frame;
+        frame.data = (uint8_t *)pvPortMalloc(5);
+        frame.data[0] = UIO_AVAILABLE_UART;
+        frame.data[1] = UIO_AVAILABLE_I2C;
+        frame.data[2] = UIO_AVAILABLE_SPI;
+        frame.data[3] = UIO_AVAILABLE_CAN;
+        frame.len = 4;
+        BaseType_t xTaskWokenByReceive = pdFALSE;
+        xQueueSendToBackFromISR(_writeQueue, &frame, &xTaskWokenByReceive);
+        break;
+    default:
+        break;
+    }
+}
 
 void after_usbd_recv(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
@@ -17,7 +59,7 @@ void after_usbd_recv(uint8_t busid, uint8_t ep, uint32_t nbytes)
     uint8_t data[2048] = {0};
     memcpy(data, read_buffer, nbytes);
     usbd_ep_start_read(busid, OUT_EP, read_buffer, 2048);
-    // dispatch(data, nbytes);
+    dispatch(data, nbytes);
 }
 
 void after_usbd_send(uint8_t busid, uint8_t ep, uint32_t nbytes)
@@ -87,7 +129,7 @@ void usbd_worker(void *pvParameters)
 
 void UIO_cdc_acm_init(QueueHandle_t queue)
 {
-
+    _writeQueue = queue;
     readyToSend = xSemaphoreCreateBinary();
     if (readyToSend == NULL)
     {
