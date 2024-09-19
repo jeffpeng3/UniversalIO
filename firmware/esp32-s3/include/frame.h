@@ -1,11 +1,22 @@
 #include <stdint.h>
 
-// 0:uart, 1:i2c, 2:spi, 3:can
+// 0:uart, 1:i2c, 2:spi, 3:can 127:request avaliable ports
 // first byte is the type of the frame
+struct data_header
+{
+    uint8_t is_config : 1;
+    uint8_t type : 7;
+};
+
 typedef struct _UIO_frame
 {
     uint8_t len;
-    uint8_t *data;
+    union
+    {
+        uint8_t *data;
+        struct data_header *header;
+    };
+
 } UIO_frame;
 
 typedef struct _UIO_uart_setting
