@@ -1,5 +1,5 @@
 obj-m += UniversalIO.o
-UniversalIO-objs += ./src/main.o ./src/i2c_engine.o ./src/spi_engine.o ./src/uart_engine.o
+UniversalIO-objs += ./src/main.o ./src/i2c_engine.o ./src/spi_engine.o ./src/uart_engine.o ./src/usb_setup.o
 EXTRA_CFLAGS := -I$(src)/include
 ccflags-y := -std=gnu99 -Wno-declaration-after-statement
 I2C_BUS = 4

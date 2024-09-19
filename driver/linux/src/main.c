@@ -5,156 +5,39 @@
 #include "lib.h"
 #include "spi_engine.h"
 #include "uart_engine.h"
+#include "usb_setup.h"
 
-static int usb_cdc_channel_active(struct uio *uio, bool active)
+static void usb_bluk_on_send(struct urb *urb)
 {
-	int val;
-	int retval = 0;
-
-	int actual_length;
-
-	uio->control->needs_remote_wakeup = 1;
-
-	if (active)
-		retval = usb_submit_urb(uio->ctrlurb, GFP_KERNEL);
-	if (retval) {
-		dev_err(&uio->control->dev,
-			"%s - usb_submit_urb(ctrl irq) failed\n", __func__);
-		// goto error_submit_urb;
-		return retval;
-	}
-
-	if (active)
-		val = USB_CDC_CTRL_DTR | USB_CDC_CTRL_RTS;
-	else
-		val = 0;
-	retval = usb_control_msg(
-		uio->dev, usb_sndctrlpipe(uio->dev, 0),
-		USB_CDC_REQ_SET_CONTROL_LINE_STATE, USB_RT_ACM, val,
-		uio->control->altsetting[0].desc.bInterfaceNumber, NULL, 0,
-		USB_CTRL_SET_TIMEOUT);
-	if (retval)
-		pr_err("Failed to set control line state\n");
-	else
-		uio->active = active;
-
-	// usb_autopm_put_interface(acm->control);
-
-	return retval;
-}
-
-static void acm_ctrl_irq(struct urb *urb)
-{
-	struct uio *acm = urb->context;
-	struct usb_cdc_notification *dr = urb->transfer_buffer;
-	unsigned int current_size = urb->actual_length;
-	unsigned int expected_size, copy_size, alloc_size;
-	int retval;
-	int status = urb->status;
-
-	switch (status) {
-	case 0:
-		/* success */
-		break;
-	case -ECONNRESET:
-	case -ENOENT:
-	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
-		dev_info(&acm->control->dev,
-			 "%s - urb shutting down with status: %d\n", __func__,
-			 status);
-		return;
-	default:
-		dev_info(&acm->control->dev,
-			 "%s - nonzero urb status received: %d\n", __func__,
-			 status);
-		goto exit;
-	}
-
-	usb_mark_last_busy(acm->dev);
-
-	if (acm->nb_index)
-		dr = (struct usb_cdc_notification *)acm->notification_buffer;
-
-	/* size = notification-header + (optional) data */
-	expected_size =
-		sizeof(struct usb_cdc_notification) + le16_to_cpu(dr->wLength);
-
-	if (current_size < expected_size) {
-		/* notification is transmitted fragmented, reassemble */
-		if (acm->nb_size < expected_size) {
-			u8 *new_buffer;
-
-			alloc_size = roundup_pow_of_two(expected_size);
-			/* Final freeing is done on disconnect. */
-			new_buffer = krealloc(acm->notification_buffer,
-					      alloc_size, GFP_ATOMIC);
-			if (!new_buffer) {
-				acm->nb_index = 0;
-				goto exit;
-			}
-
-			acm->notification_buffer = new_buffer;
-			acm->nb_size = alloc_size;
-			dr = (struct usb_cdc_notification *)
-				     acm->notification_buffer;
-		}
-
-		copy_size = min(current_size, expected_size - acm->nb_index);
-
-		memcpy(&acm->notification_buffer[acm->nb_index],
-		       urb->transfer_buffer, copy_size);
-		acm->nb_index += copy_size;
-		current_size = acm->nb_index;
-	}
-
-	if (current_size >= expected_size) {
-		/* notification complete */
-		// acm_process_notification(acm, (unsigned char *)dr);
-		acm->nb_index = 0;
-	}
-
-exit:
-	retval = usb_submit_urb(urb, GFP_ATOMIC);
-	if (retval && retval != -EPERM && retval != -ENODEV)
-		dev_err(&acm->control->dev, "%s - usb_submit_urb failed: %d\n",
-			__func__, retval);
-	else
-		dev_vdbg(&acm->control->dev,
-			 "control resubmission terminated %d\n", retval);
-}
-
-struct api_context {
-	struct completion done;
-	int status;
-};
-
-static void usb_api_blocking_completion(struct urb *urb)
-{
-	char *buf = urb->context;
-
-	if (urb->status) {
-		pr_err("Bulk message failed with error: %d\n", urb->status);
-		return;
-	}
-	if (buf == NULL) {
-		pr_err("Bulk message buffer is NULL!\n");
-		return;
-	}
 	char bb[65] = {};
+	uint8_t *buf = urb->transfer_buffer;
 
-	for (int j = 0; j < urb->actual_length; j++)
-		sprintf(bb + j, "%c", buf[j]);
+	static int count;
 
-	pr_info("Received Bulk message, actual length in urb: %d bytes %s\n",
-		urb->actual_length, bb);
-	int retval = usb_submit_urb(urb, GFP_KERNEL);
+	memcpy(bb, buf, urb->actual_length);
 
-	if (retval) {
-		pr_err("Failed to submit URB\n");
-		// return retval;
+	pr_info("Transmit Bulk message, actual length in urb: %d bytes\n",
+		urb->actual_length);
+	print_hex_dump(KERN_INFO, "Transmit Bulk message: ", DUMP_PREFIX_OFFSET,
+		       16, 1, bb, urb->actual_length, false);
+	// delay(3);
+	if (*buf == 255) {
+		buf[0] = 0;
+		buf[1] = 'A';
+		buf[2] = 'b';
+		buf[3] = '*';
+		buf[4] = '@';
+		// buf[5] = 0;
+		urb->transfer_buffer_length = 5;
+		usb_submit_urb(urb, GFP_KERNEL);
+		count = 0;
+	} else if (count < 5) {
+		count++;
+		usb_submit_urb(urb, GFP_KERNEL);
+	} else {
+		kfree(buf);
+		usb_free_urb(urb);
 	}
-	// return 0;
 }
 
 static int usb_probe(struct usb_interface *interface,
@@ -187,12 +70,11 @@ static int usb_probe(struct usb_interface *interface,
 		}
 	}
 
-	// wer only initialize contril interface
+	// we only initialize contril interface
 	if (interface != control_interface)
 		return -ENODEV;
 
-	char sendbuf[100] =
-		"HelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHelloHello";
+	uint8_t data[100] = { 255, 0 };
 
 	epctrl = &control_interface->cur_altsetting->endpoint[0].desc;
 	epread = &data_interface->cur_altsetting->endpoint[0].desc;
@@ -218,14 +100,14 @@ static int usb_probe(struct usb_interface *interface,
 
 	int ctrlsize = usb_endpoint_maxp(epctrl);
 
-	u8 *buf = usb_alloc_coherent(usb_dev, ctrlsize, GFP_KERNEL,
-				     &uio->ctrl_dma);
+	u8 *ctrlBuf = usb_alloc_coherent(usb_dev, ctrlsize, GFP_KERNEL,
+					 &uio->ctrl_dma);
 
-	if (!buf) {
+	if (!ctrlBuf) {
 		pr_err("Failed to allocate buffer for control endpoint\n");
 		return -ENOMEM;
 	}
-	uio->ctrl_buffer = buf;
+	uio->ctrl_buffer = ctrlBuf;
 
 	usb_fill_int_urb(uio->ctrlurb, usb_dev,
 			 usb_rcvintpipe(usb_dev, epctrl->bEndpointAddress),
@@ -239,29 +121,33 @@ static int usb_probe(struct usb_interface *interface,
 	uio->nb_index = 0;
 	uio->nb_size = 0;
 
-	usb_cdc_channel_active(uio, true);
+	usb_cdc_channel_active(uio);
 
-	// 发送 Bulk 消息
-	retval = usb_bulk_msg(usb_dev, usb_sndbulkpipe(usb_dev, 0x01), sendbuf,
-			      5, &actual_length, 1000);
-	if (retval)
-		pr_err("Sending Bulk message failed with error: %d %d\n",
-		       retval, actual_length);
-	else
-		pr_info("Sent Bulk message successfully, actual length: %d bytes\n",
-			actual_length);
-	for (int i = 0; i < 1; i++) {
-		char *rx_buf = kzalloc(100, GFP_KERNEL);
-		struct urb *urb;
+	struct urb *urb = usb_alloc_urb(0, GFP_KERNEL);
+	char *tx_buf = kzalloc(64, GFP_KERNEL);
 
-		urb = usb_alloc_urb(0, GFP_KERNEL);
+	memcpy(tx_buf, data, 64);
+	usb_fill_bulk_urb(urb, usb_dev,
+			  usb_sndbulkpipe(usb_dev, epwrite->bEndpointAddress),
+			  tx_buf, 1, usb_bluk_on_send, tx_buf);
+	retval = usb_submit_urb(urb, GFP_KERNEL);
+	if (retval) {
+		pr_err("Failed to submit URB\n");
+		// return retval;
+	}
+
+	for (int i = 0; i < 2; i++) {
+		char *rx_buf = kzalloc(64, GFP_KERNEL);
+		struct urb *urb = usb_alloc_urb(0, GFP_KERNEL);
+
 		if (!urb) {
 			pr_err("Failed to allocate URB\n");
 			return -ENOMEM;
 		}
-		usb_fill_bulk_urb(urb, usb_dev, usb_rcvbulkpipe(usb_dev, 0x81),
-				  rx_buf, 64, usb_api_blocking_completion,
-				  rx_buf);
+		usb_fill_bulk_urb(urb, usb_dev,
+				  usb_rcvbulkpipe(usb_dev,
+						  epread->bEndpointAddress),
+				  rx_buf, 64, usb_bluk_on_recv, uio);
 		retval = usb_submit_urb(urb, GFP_KERNEL);
 		if (retval) {
 			pr_err("Failed to submit URB\n");
@@ -269,7 +155,6 @@ static int usb_probe(struct usb_interface *interface,
 		}
 	}
 
-	usb_cdc_channel_active(uio, 0);
 	pr_info("USB device %04X:%04X init done.\n", id->idVendor,
 		id->idProduct);
 	return 0;
